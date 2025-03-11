@@ -169,6 +169,14 @@ app.get('/assets/:file', (req, res) => {
     }
 });
 
+// public servers endpoint
+app.get('/servers', async (req, res) => {    
+    res.render('base', { 
+        page: 'servers',
+        req: req
+    });
+});
+
 // API endpoint to fetch all data from Minehut
 app.get('/getData', async (req, res) => {
     const minehutId = req.cookies.minehut_id;

@@ -1,0 +1,133 @@
+<div class="container mx-auto px-4 py-8 space-y-6">
+    <header class="bg-gray-900/90 rounded-xl border border-gray-700 p-6 text-center space-y-4">
+        <h1 class="text-4xl font-bold">Public Servers</h1>
+        <p class="text-gray-300">Here, You can find all minehut servers that had visibility set to public.</p>
+    </header>
+</div>
+
+<!-- server list box, contains server cards in a grid -->
+<div class="container mx-auto px-4 py-8 space-y-6">
+    <div class="bg-gray-900/90 rounded-xl border border-gray-700 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <h2 class="text-2xl font-bold">Public Servers</h2>
+                <span id="serverCount" class="bg-blue-600/50 text-blue-100 px-3 py-1 rounded-full text-sm">Loading...</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <input type="text" id="searchInput" placeholder="Search servers..." class="bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition-colors">
+                <select id="sortSelect" class="bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition-colors">
+                    <option value="players">Players (High to Low)</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="rank">Rank</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Server grid -->
+        <div id="serverGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Loading placeholder -->
+            <div class="animate-pulse bg-gray-800/50 rounded-xl border border-gray-700 p-4 flex flex-col items-center">
+                <div class="w-16 h-16 bg-gray-700 rounded-lg mb-4"></div>
+                <div class="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div class="h-3 bg-gray-700 rounded w-1/2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let servers = [];
+let filteredServers = [];
+
+// Fetch and display servers
+async function fetchServers() {
+    try {
+        const response = await oHttp.get('/proxy/servers');
+        if (response.response.code !== 200) {
+            throw new Error('Failed to fetch servers');
+        }
+        
+        servers = response.response.body;
+        filteredServers = [...servers];
+        updateServerDisplay();
+        document.getElementById('serverCount').textContent = `${servers.length} Servers`;
+    } catch (error) {
+        console.error('Error fetching servers:', error);
+        errorAlert('Failed to load servers');
+    }
+}
+
+function getRankColor(rank) {
+    switch (rank?.toUpperCase()) {
+        case 'LEGENDARY': return 'text-yellow-400';
+        case 'EPIC': return 'text-purple-400';
+        case 'RARE': return 'text-blue-400';
+        case 'UNCOMMON': return 'text-green-400';
+        default: return 'text-gray-400';
+    }
+}
+
+function createServerCard(server) {
+    const iconUrl = `https://minehut-server-icons-live.s3.us-west-2.amazonaws.com/${server.icon_name}.png`;
+    const rankClass = getRankColor(server.rank);
+    
+    return `
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-4 flex flex-col items-center hover:border-blue-500 transition-colors">
+            <img src="${iconUrl}" alt="${server.display_name}" class="w-16 h-16 rounded-lg mb-4" onerror="this.src='https://minehut-server-icons-live.s3.us-west-2.amazonaws.com/GRASS_BLOCK.png'">
+            <h3 class="text-lg font-semibold text-center mb-2">${server.display_name}</h3>
+            <div class="flex items-center space-x-2 mb-2">
+                <span class="${rankClass} text-sm">${server.rank || 'COMMON'}</span>
+                ${server.salePrice ? `<span class="bg-red-500/50 text-red-100 px-2 py-0.5 rounded text-xs">SALE</span>` : ''}
+            </div>
+            <div class="text-gray-400 text-sm">Price: ${server.price} credits</div>
+            ${server.salePrice ? `<div class="text-red-400 text-sm">Sale: ${server.salePrice} credits</div>` : ''}
+        </div>
+    `;
+}
+
+function updateServerDisplay() {
+    const grid = document.getElementById('serverGrid');
+    
+    if (filteredServers.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">No servers found</div>';
+        return;
+    }
+    
+    grid.innerHTML = filteredServers.map(server => createServerCard(server)).join('');
+}
+
+// Search and sort functionality
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    filteredServers = servers.filter(server => 
+        server.display_name.toLowerCase().includes(searchTerm)
+    );
+    updateServerDisplay();
+});
+
+document.getElementById('sortSelect').addEventListener('change', (e) => {
+    const sortBy = e.target.value;
+    
+    filteredServers.sort((a, b) => {
+        switch (sortBy) {
+            case 'name':
+                return a.display_name.localeCompare(b.display_name);
+            case 'rank':
+                const rankOrder = { 'LEGENDARY': 4, 'EPIC': 3, 'RARE': 2, 'UNCOMMON': 1, 'COMMON': 0 };
+                return (rankOrder[b.rank] || 0) - (rankOrder[a.rank] || 0);
+            case 'players':
+                return b.price - a.price;
+            default:
+                return 0;
+        }
+    });
+    
+    updateServerDisplay();
+});
+
+// Initial load
+fetchServers();
+setInterval(fetchServers, 30000); // Refresh every 30 seconds
+</script>
+
+

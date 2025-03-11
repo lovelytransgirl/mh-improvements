@@ -1,6 +1,3 @@
-# Archived and will not be maintained
-This panel is no longer being maintained. You may use the code inside however you want, except to cause harm or damage to anything or anyone.
-
 # Our Minehut Panel
 This frontend runs on Minehut's Dev servers. You must make a new account there if you don't already have one. You cannot use your production ("normal") minehut account. If you do not know what this means, just follow the login steps, but make an account first.
 If for whatever reason you don't want to use the dev servers, it is extremely easy to switch over to the normal ones (just remove the `.dev` in all API urls)
@@ -47,13 +44,13 @@ We will allow you to use credits that you already have (buying ranks, server pla
 - Add renaming servers. ✅
 - Add server discovery settings. 🟡 (Only visibilities were implemented.)
 - Add backup support. 🔴
-- Add user page (minecraft / GS linking, transaction log, etc). 🔴
+- Add user page (minecraft / GS linking, transaction log, etc). ✅
 - Add resource pack support. 🔴
 - Add world settings / upload. 🔴
 - Add better subuser support. 🔴
 - Add mobile support. 🔴
 - Add external server support. 🔴
-- Add public server list. 🔴
+- Add public server list. 🟡 (Implemented, Not tested yet. since server creation has been disabled)
 - Add proxy support. 🔴
 - Add advertising support. 🔴
 - Add toggling cosmetics. 🔴
