@@ -4,6 +4,9 @@ const path = require('path');
 const expressWs = require('express-ws');
 const WebSocket = require('ws');
 const cors = require('cors');
+const fs = require('fs');
+// config
+const config = require('./config');
 
 // oHttp
 const oHttp = {
@@ -103,7 +106,12 @@ const oHttp = {
 }
 
 const app = express();
-const port = 8081;
+// if port is not set, use 8081 and log it
+if (!config.port) {
+    console.log('Port is not properly set in config.js, using the default port 8081.');
+    config.port = 8081;
+}
+const port = config.port;
 
 // Middleware & CORS
 app.use(express.raw({type: '*/*', limit: '11mb', extended: true}));
@@ -125,106 +133,11 @@ expressWs(app);
 const checkAuth = (req, res, next) => {
     if (!req.cookies.minehut_id || !req.cookies.token || 
         !req.cookies.sessionId || !req.cookies.profile_id) {
-        return res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: url('https://panel.oddbyte.dev/img/BrightMoon.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #fff;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-
-        .card {
-            background: rgba(13, 17, 23, 0.8);
-            border-radius: 8px;
-            padding: 20px;
-            margin: 10px 0;
-            backdrop-filter: blur(10px);
-        }
-
-        h1, h3 {
-            color: #fff;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        button {
-            background: #238636;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 16px;
-            width: 100%;
-        }
-
-        button:hover {
-            background: #2ea043;
-        }
-
-        a {
-            color: #58a6ff;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .instructions {
-            font-size: 1.1em;
-            margin: 15px 0;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="card">
-            <h1>Welcome</h1>
-            <p class="instructions">To proceed, follow these two steps:</p>
-            <div class="instructions">
-                <h3>Step 1: Install the Extension</h3>
-                <p>
-                    Download and install the extension from the 
-                    <a href="https://github.com/Minehut-Improvements/panel/tree/extension" target="_blank">
-                        GitHub Repository
-                    </a>.
-                </p>
-                <p>
-                    If you are using firefox, Please install it from <a href="https://addons.mozilla.org/en-US/firefox/addon/minehut-login-redirecter/" target="_blank">
-                        Mozilla Add-ons
-                    </a> page.
-                </p>
-                <h3>Step 2: Log In</h3>
-                <p>
-                    Log in from 
-                    <a href="https://gqgn0edrg67vnqh.minehut.app/?refer=dev" target="_blank">
-                        Minehut's login page
-                    </a>.
-                </p>
-            </div>
-            <button onclick="window.location.reload()">Continue</button>
-        </div>
-    </div>
-</body>
-</html>`);}
+        // return an html page in /views/login.ejs
+        return res.render('login', {
+            req: req
+        });
+    }
     next();
 };
 
@@ -234,6 +147,26 @@ app.get('/', checkAuth, async (req, res) => {
         page: 'server-list',
         req: req
     });
+});
+
+// assets endpoint
+app.get('/assets/:file', (req, res) => {
+    // check if file exists
+    if (!fs.existsSync(path.join(__dirname, '/views/assets', req.params.file))) {
+        return res.status(404).send('Looks like you are trying to access a file that does not exist. Are you lost?');
+    } else {
+        // if param tries to use bash, return 403
+        if (req.params.file.includes('..')) {
+            return res.status(403).send('Are you trying to access a file outside of the assets folder?');
+        } else {
+            // check if file is a directory
+            if (fs.statSync(path.join(__dirname, '/views/assets', req.params.file)).isDirectory()) {
+                return res.status(403).send('Are you trying to access a directory?');
+            } else {
+                res.sendFile(path.join(__dirname, '/views/assets', req.params.file));
+            }
+        }
+    }
 });
 
 // API endpoint to fetch all data from Minehut
@@ -413,6 +346,7 @@ app.use('/proxy/*', async (req, res) => {
     }
     
     try {
+        // logging the send request
         const conn = await oHttp.other(
             `https://api.dev.minehut.com${req.originalUrl.replace('/proxy', '')}`,
             req.method,

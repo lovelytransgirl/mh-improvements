@@ -166,22 +166,32 @@ async function createServer() {
         return;
     }
 
+    // Validate server name (alphanumeric and dashes only, 3-10 characters)
+    if (!/^[a-zA-Z0-9-]{3,10}$/.test(name)) {
+        errorAlert('Server name must be 3-10 characters long and can only contain letters, numbers, and dashes.');
+        return;
+    }
+
     try {
         const conn = await oHttp.post('/proxy/servers/create', JSON.stringify({
-            platform: 'java',
-            name: name,
-            type: 'PAPER',
-            version: '66ba7dc16b14b54cfc0e4edc'
-        }));
+            platform: "JAVA",
+            name: name.toLowerCase(),
+            type: "PAPER",
+            version: "66ba7dc16b14b54cfc0e4edc",
+            plan: "null"
+        }), {
+            'content-type': 'application/json'
+        });
 
         if (conn.response.code === 200) {
             location.reload();
         } else {
+            console.log('Server creation response:', conn);
             errorAlert(`Failed to create server: ${JSON.stringify(conn?.response?.body)}` || 'Unknown error while creating server')
-            console.error('Failed to create server:', conn);
         }
     } catch (error) {
         console.error('Error creating server:', error);
+        errorAlert(`Failed to create server: ${error?.connection?.response?.body?.message || 'Unknown error'}`);
     } finally {
         closeCreateServerPopup();
     }

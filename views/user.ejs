@@ -209,7 +209,7 @@ async function fetchUserData() {
     const userData = response.response.body.user;
 
     document.getElementById('emailInput').value = userData.email || 'No email set';
-    document.getElementById('usernameInput').value = userData.username || 'No username set';
+    document.getElementById('usernameInput').value = userData.minecraft_name || 'No username set';
 
     const accountInfo = document.getElementById('accountInfo');
     accountInfo.innerHTML = `
@@ -247,7 +247,7 @@ async function fetchUserData() {
         </div>
     `;
 
-    updateMCStatus(userData.minecraftName);
+    updateMCStatus(userData.minecraft_name);
 }
 
 function switchTab(tab) {
@@ -460,7 +460,12 @@ function updateMCStatus(minecraftName) {
 async function linkMC() {
     try {
         const response = await oHttp.post(`/proxy/user/${userId}/minecraft/code`);
-        showAlert(`Your link code is: ${response.response.body.code}`, 'info');
+        // if reponse does not contains error, show alert
+        if (!response.response.body.error) {
+            showAlert(`You can link your account with /link ${response.response.body.code}!`, 'info');
+        } else {
+            errorAlert(response.response.body.error);
+        }
     } catch (error) {
         errorAlert('Failed to generate link code');
         console.error('MC link error:', error);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="h-full bg-cover bg-fixed" style="background-image: url('https://panel.oddbyte.dev/img/BrightMoon.jpg');">
+<html class="h-full bg-cover bg-fixed" style="background-image: url('assets/background.webp');">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -218,7 +218,7 @@ const oHttp = {
         const headersToHijack = [];
         const hijackedheaders = {};
     
-        for (const [key, value] of Object.entries(headers)) {
+        for (const [key, value] of Object.entries(headers || {})) {
             if (this.whitelist.includes(key.toLowerCase())) {
                 hijackedheaders[key] = value;
             } else if (value !== null) {
@@ -233,7 +233,7 @@ const oHttp = {
         return hijackedheaders;
     },
 
-    async makeRequest(url, type, body = null, headers) {
+    async makeRequest(url, type, body = null, headers = {}) {
         const conn = this.connection();
         conn.request.url = url;
         conn.request.type = type;
@@ -243,15 +243,15 @@ const oHttp = {
         try {
             const options = {
                 method: type,
-                credentials: 'include'
+                credentials: 'include',
+                headers: {
+                    'content-type': 'application/json',
+                    ...this.hijackHeaders(headers)
+                }
             };
 
-            if (body) {
-                options.body = body;
-            }
-
-            if (headers) {
-                options.headers = headers;
+            if (body !== null) {
+                options.body = typeof body === 'string' ? body : JSON.stringify(body);
             }
 
             const response = await fetch(url, options);
@@ -286,15 +286,15 @@ const oHttp = {
         return this.makeRequest(url, 'GET', null, headers);
     },
 
-    post: function(url, body, headers = null) {
+    post: function(url, body = null, headers = null) {
         return this.makeRequest(url, 'POST', body, headers);
     },
 
-    put: function(url, body, headers = null) {
+    put: function(url, body = null, headers = null) {
         return this.makeRequest(url, 'PUT', body, headers);
     },
 
-    patch: function(url, body, headers = null) {
+    patch: function(url, body = null, headers = null) {
         return this.makeRequest(url, 'PATCH', body, headers);
     },
 
@@ -306,7 +306,7 @@ const oHttp = {
         return this.makeRequest(url, 'OPTIONS', null, headers);
     },
 
-    other: function(url, type, body, headers = null) {
+    other: function(url, type, body = null, headers = null) {
         return this.makeRequest(url, type, body, headers);
     }
 }
