@@ -1,9 +1,10 @@
 <div class="rounded-xl overflow-hidden bg-[rgba(17,25,40,0.75)] border border-[rgba(255,255,255,0.125)] p-6 mb-8">
     <div class="flex items-center gap-3 mb-3">
         <h1 class="text-3xl font-bold">Account Management</h1>
+        <div class="h-0.5 bg-gradient-to-r from-purple-400/30 via-purple-400/50 to-purple-400/30 my-4"></div>
     </div>
 
-    <div class="flex space-x-4 mb-4">
+    <div class="flex space-x-4 mb-4 mt-4">
         <button class="tab-button px-4 py-2 rounded-lg font-medium text-white active bg-blue-600" onclick="switchTab('account')">Account</button>
         <button class="tab-button px-4 py-2 rounded-lg font-medium bg-gray-800 text-white" onclick="switchTab('servers')">Servers</button>
     </div>
@@ -20,8 +21,8 @@
                     <input type="text" id="usernameInput" class="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-600 rounded-lg text-white" readonly>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-1">Minecraft Account</label>
-                    <div id="mcAccountStatus" class="mb-4">Loading...</div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1 ">Minecraft Account</label>
+                    <input type="text" id="minecraftAccountInput" class="mb-4 w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-600 rounded-lg text-white" readonly>
                     <div class="flex gap-2">
                         <button onclick="linkMC()" id="linkMCBtn" class="group relative w-full overflow-hidden rounded-lg bg-gradient-to-br from-green-400 to-green-600 p-0.5 transition-all hover:bg-gradient-to-br hover:from-green-500 hover:to-green-700">
                             <span class="relative flex w-full items-center justify-center rounded-lg bg-gray-800 px-6 py-3 font-medium text-green-400 transition-all group-hover:bg-opacity-0 group-hover:text-white">Link Account</span>
@@ -34,6 +35,7 @@
             </div>
             <div class="space-y-4">
                 <div id="accountInfo"></div>
+                <!-- GDPR button not aligned with the other buttons -->
                 <button onclick="viewGDPR()" class="group relative w-full overflow-hidden rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 p-0.5 transition-all hover:bg-gradient-to-br hover:from-blue-500 hover:to-blue-700">
                     <span class="relative flex w-full items-center justify-center rounded-lg bg-gray-800 px-6 py-3 font-medium text-blue-400 transition-all group-hover:bg-opacity-0 group-hover:text-white">View GDPR Data</span>
                 </button>
@@ -210,6 +212,7 @@ async function fetchUserData() {
 
     document.getElementById('emailInput').value = userData.email || 'No email set';
     document.getElementById('usernameInput').value = userData.minecraft_name || 'No username set';
+    document.getElementById('minecraftAccountInput').value = userData.minecraft_name || 'No minecraft account set';
 
     const accountInfo = document.getElementById('accountInfo');
     accountInfo.innerHTML = `
