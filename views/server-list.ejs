@@ -168,6 +168,9 @@ async function createServer() {
 
     // Validate server name (alphanumeric and dashes only, 3-10 characters)
     if (!/^[a-zA-Z0-9-]{3,10}$/.test(name)) {
+        // close the current popup (if there's any)
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('createServerPopup').style.display = 'none';
         errorAlert('Server name must be 3-10 characters long and can only contain letters, numbers, and dashes.');
         return;
     }
